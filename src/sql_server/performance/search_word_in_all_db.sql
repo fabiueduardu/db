@@ -1,13 +1,16 @@
 --### search a keyword in tables of db
 set nocount on
-declare  @keyword varchar(100)= '1'
+declare  @keyword varchar(100)= ' key word'
 		,@id int
 		,@query nvarchar(max)
 		,@rowcount int
-		,@tabletarget varchar(100) = null
 
 declare @t table(id int identity(1,1) primary key, name varchar(100) not null, query varchar(max) not null, fg_read bit not null default 0, nu_affected_lines int default 0)
 declare @types table(name varchar(20) , iskey bit default 0)
+declare @tabletarget table(name varchar(100))
+
+--### tables target
+--insert into @tabletarget values('jspank_35A161C252A3_user')
 
 --### types ok
 insert into @types
@@ -18,6 +21,11 @@ insert into @types
 	union all select 'int',1
 
 --### tables and columns 
+insert into @tabletarget
+	select name from 
+		sys.tables 
+			where not exists(select top 1 1 from @tabletarget)
+
 insert into @t(name,query)
 select  t.name, 'select @rowcount=count(*) from ['+t.name+'] where '+c.name+' like ''%'+ @keyword +'%'''
 			from sys.all_columns c 
@@ -27,7 +35,8 @@ select  t.name, 'select @rowcount=count(*) from ['+t.name+'] where '+c.name+' li
 						on t.object_id = c.object_id
 							join @types tpme
 								on tpme.name =  tp.name
-									where t.name = isnull(@tabletarget , t.name)
+									join @tabletarget t_t
+										on t_t.name = t.name
 
 while exists(select top 1 1 from @t where fg_read = 0)
 begin 
