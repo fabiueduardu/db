@@ -42,3 +42,6 @@ where "text" not like '%sys.%'
 
  --#### select count(*)
  SELECT max(ROWS) from sysindexes where id = object_id('table_name')
+
+ --### lengh of binary field in MB
+SELECT CAST(DATALENGTH(CAST(0x255044462D312E340A25E2E3CFD30A as varbinary(max))) / 1048576.0  AS DECIMAL(9,5))
