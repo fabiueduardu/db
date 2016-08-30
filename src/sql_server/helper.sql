@@ -14,6 +14,9 @@ dbcc show_statistics ('table_name',index_name)  with histogram;
 --### rebuild index
 alter index all on table_name rebuild;
 
+--### view table size
+	exec sp_spaceused 'table_name'
+
 --### view desfragmentation of index
 declare @db sysname = 'db_name';
 
