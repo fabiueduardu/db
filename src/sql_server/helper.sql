@@ -130,6 +130,7 @@ SELECT SUBSTRING(@value,i,j-i)
 FROM split
 
 --### base64
+--####  convert(varchar(max),CAST('' AS XML).value('xs:base64Binary(sql:column("v.Password"))', 'varbinary(max)')) PassColumn
 DECLARE @source VARBINARY(MAX)
 	   ,@encoded VARCHAR(MAX)
 	   ,@decoded VARBINARY(MAX)
