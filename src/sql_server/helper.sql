@@ -1,5 +1,5 @@
 --### clear the execution plan cache
-dbcc freeproccache
+DBCC FREEPROCCACHE WITH NO_INFOMSGS;
 
 --### clear the data cache 
 DBCC DROPCLEANBUFFERS 
@@ -265,3 +265,54 @@ INNER JOIN sys.objects AS REFOBJ ON DEP.referenced_id = REFOBJ.object_id
 INNER JOIN sys.schemas AS REFSCH ON REFOBJ.schema_id = REFSCH.schema_id
 LEFT JOIN sys.columns  AS REFCOL ON DEP.referenced_class IN(0, 1)AND DEP.referenced_minor_id = REFCOL.column_id AND DEP.referenced_id = REFCOL.object_id
 ORDER BY ObjectName,ReferencedObjectName ,REFCOL.column_id
+
+--### view queries time/count
+/*
+	DBCC FREEPROCCACHE
+	DBCC DROPCLEANBUFFERS
+	DBCC FREEPROCCACHE WITH NO_INFOMSGS;
+*/
+
+;with r as (
+select top 100
+total_worker_time/execution_count AS Avg_CPU_Time
+    ,execution_count
+    ,total_elapsed_time/execution_count as AVG_Run_Time
+    ,(SELECT
+          SUBSTRING(text,statement_start_offset/2,(CASE
+                                                       WHEN statement_end_offset = -1 THEN LEN(CONVERT(nvarchar(max), text)) * 2 
+                                                       ELSE statement_end_offset 
+                                                   END -statement_start_offset)/2
+                   ) FROM sys.dm_exec_sql_text(sql_handle)
+     ) AS query_text 
+FROM sys.dm_exec_query_stats 
+		  ORDER BY Avg_CPU_Time DESC
+		--ORDER BY AVG_Run_Time DESC
+		--ORDER BY execution_count DESC
+)
+	 SELECT  *
+		FROM r
+			WHERE cast(query_text  as VARCHAR(MAX)) NOT LIKE '%?Test?%'
+
+/* --### view queries/deadlock helper
+
+	DBCC TRACEON (1204)
+	SP_READERRORLOG
+
+*/
+;with r as (
+select
+  XEventData.XEvent.value('(.)[1]/@timestamp','datetime') as [DateAndTime],
+  cast(XEventData.XEvent.value('(data/value)[1]','nvarchar(max)')as XML) as DeadlockGraph
+FROM
+       (select CAST(target_data as xml) as TargetData
+        from sys.dm_xe_session_targets st join
+             sys.dm_xe_sessions s 
+				on s.address = st.event_session_address
+        where name='system_health') AS Data
+       CROSS APPLY TargetData.nodes('//RingBufferTarget/event') AS XEventData(XEvent)
+where XEventData.XEvent.value('@name','nvarchar(4000)')='xml_deadlock_report' 
+)
+ SELECT  *
+	FROM r
+		WHERE cast(DeadlockGraph  as VARCHAR(MAX)) NOT LIKE '%?Test?%'
