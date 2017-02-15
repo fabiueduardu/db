@@ -4,6 +4,9 @@ DBCC FREEPROCCACHE WITH NO_INFOMSGS;
 --### clear the data cache 
 DBCC DROPCLEANBUFFERS 
 
+--### update index
+EXEC sp_updatestats
+
 --### read with nolock
 SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED
 

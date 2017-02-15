@@ -1,14 +1,24 @@
 --## while
-DECLARE  @RowCount INT = 1
-		,@Id INT = 0
+DECLARE @TableDb TABLE(Value CHAR(1))
+		INSERT INTO @TableDb VALUES('A'),('B'),('3'),('4'),('1')
 
-WHILE @RowCount > 0
+DECLARE  @Line INT = 0
+
+--Table run
+SELECT *
+	  ,ROW_NUMBER() OVER ( ORDER BY Value) AS Line
+	INTO #TableDbTmp
+		FROM @TableDb
+
+WHILE EXISTS(SELECT TOP 1 1 FROM #TableDbTmp)
 BEGIN  
-	SELECT TOP 1 @Id = cd_beneficio FROM Beneficio  WHERE cD_attr_tipo = 2933 AND cd_beneficio > @Id ORDER BY cd_beneficio;
-	SET @RowCount = @@ROWCOUNT;
-	SELECT @Id Id, @RowCount _RowCount
 
+	SELECT TOP 1 
+			@Line = Line 
+		FROM #TableDbTmp  WHERE Line > @Line ORDER BY Line;
 	
-	IF @Id IS NULL break;
+	SELECT * FROM #TableDbTmp WHERE Line = @Line	
+	DELETE FROM #TableDbTmp WHERE Line = @Line
 end
 
+DROP TABLE #TableDbTmp
