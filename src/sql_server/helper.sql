@@ -454,3 +454,14 @@ EXEC sp_updatestats;
   
 		   select 'ALTER INDEX ALL ON ['+Name+'] REBUILD;' from sys.tables 
 union all select  'UPDATE STATISTICS ['+Name+'];' from sys.tables 
+
+--select indexes
+  SELECT OBJECT_NAME(OBJECT_ID), * FROM SYS.INDEXES
+		 WHERE type = 2
+			AND name like 'IX%'
+				ORDER BY NAME 
+
+---Create index noncluestered
+   DROP INDEX IX_TableName_1 ON TableName
+   CREATE INDEX [IX_TableName_1] ON [TableName] ([Col1]) INCLUDE ([Col2])
+   CREATE INDEX [IX_TableName_1] ON [TableName] ([Col1]) INCLUDE ([Col2]) WHERE ([Col1] IS NOT NULL) 
