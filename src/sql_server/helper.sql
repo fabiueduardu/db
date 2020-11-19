@@ -448,3 +448,9 @@ WHERE so.is_ms_shipped = 0
 --so.[name] LIKE N''  -- optional name filter
 --ORDER BY ??
  
+--Statistics
+
+EXEC sp_updatestats;  
+  
+		   select 'ALTER INDEX ALL ON ['+Name+'] REBUILD;' from sys.tables 
+union all select  'UPDATE STATISTICS ['+Name+'];' from sys.tables 
