@@ -465,3 +465,20 @@ union all select  'UPDATE STATISTICS ['+Name+'];' from sys.tables
    DROP INDEX IX_TableName_1 ON TableName
    CREATE INDEX [IX_TableName_1] ON [TableName] ([Col1]) INCLUDE ([Col2])
    CREATE INDEX [IX_TableName_1] ON [TableName] ([Col1]) INCLUDE ([Col2]) WHERE ([Col1] IS NOT NULL) 
+
+---View STATIS TICS UPDATE 
+SELECT sp.stats_id, 
+	   t.name TableName,
+       stat.name, 
+       filter_definition, 
+       last_updated, 
+       rows, 
+       rows_sampled, 
+       steps, 
+       unfiltered_rows, 
+       modification_counter
+FROM sys.stats AS stat
+     CROSS APPLY sys.dm_db_stats_properties(stat.object_id, stat.stats_id) AS sp
+		JOIN sys.tables t
+			ON stat.object_id = OBJECT_ID(t.name)
+order by t.name, stat.name , last_updated desc
